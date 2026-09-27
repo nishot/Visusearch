@@ -10,6 +10,14 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+## Note 
+download the dataset inorder to see it working 
+(only local running available)
+
+## dataset used 
+https://www.kaggle.com/competitions/h-and-m-personalized-fashion-recommendations/data
+
+
 The first model load downloads `openai/clip-vit-base-patch32`. Generate the full catalog assets once:
 
 ```powershell
