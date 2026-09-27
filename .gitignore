@@ -1,0 +1,17 @@
+__pycache__/
+.pytest_cache/
+.venv/
+.env
+embeddings/
+indexes/
+outputs/
+*.pyc
+# Ignore all files and subdirectories inside dataset/
+dataset/*
+
+# But do NOT ignore the .gitkeep file inside dataset/
+!dataset/.gitkeep
+
+# Ignore Python cache files
+**/__pycache__/
+*.pyc

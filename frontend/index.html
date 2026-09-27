@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>H&M Visual Search</title>
+  <style>
+    :root { font-family: Georgia, serif; color: #17211b; background: #eef0e8; }
+    * { box-sizing: border-box; } body { margin: 0; }
+    main { max-width: 1180px; margin: 0 auto; padding: 56px 24px; }
+    header { display:flex; justify-content:space-between; align-items:end; gap:24px; margin-bottom:34px; }
+    h1 { font-size: clamp(2.5rem, 6vw, 5.5rem); line-height:.9; letter-spacing:-.04em; margin:0; font-weight:500; }
+    header p { max-width:320px; margin:0; font: 15px/1.5 Arial, sans-serif; }
+    .search-panel { display:grid; grid-template-columns: 1fr auto; gap:18px; align-items:end; }
+    .drop { min-height:190px; border:1px dashed #718276; background:#f9faf5; display:flex; align-items:center; justify-content:center; text-align:center; cursor:pointer; padding:20px; }
+    .drop.drag { background:#dce6dc; } .drop img { max-height:170px; max-width:100%; object-fit:contain; }
+    .drop span { font: 15px Arial, sans-serif; } .controls { display:flex; flex-direction:column; gap:10px; }
+    select, button { border:1px solid #17211b; background:#17211b; color:white; padding:14px 18px; font:14px Arial,sans-serif; cursor:pointer; }
+    select { background:#f9faf5; color:#17211b; min-width:180px; } button:disabled { opacity:.45; cursor:wait; }
+    #status { min-height:24px; margin:20px 0; font:14px Arial,sans-serif; } .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:18px; }
+    article { background:#f9faf5; padding:10px; } article img { width:100%; aspect-ratio: .72; object-fit:cover; background:#d9ded6; }
+    article h2 { font: 16px Georgia,serif; margin:10px 0 5px; } article p { font:12px Arial,sans-serif; color:#5e6a61; margin:4px 0; }
+    @media(max-width:700px){ header,.search-panel{display:block}.controls{margin-top:12px}.controls>*{width:100%} main{padding-top:30px} }
+  </style>
+</head>
+<body><main>
+  <header><h1>Visual<br>Search.</h1><p>Find the closest H&M pieces from a single image. Drop a fashion photo below to begin.</p></header>
+  <section class="search-panel"><label class="drop" id="drop"><span id="hint">Drop an image here or choose a file</span><img id="preview" hidden alt="Upload preview"></label><div class="controls"><select id="group"><option value="">All product groups</option></select><button id="search" disabled>Search collection</button></div></section>
+  <div id="status"></div><section class="grid" id="results"></section>
+</main><script>
+const drop=document.querySelector('#drop'), input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.hidden=true; document.body.append(input);
+const preview=document.querySelector('#preview'), hint=document.querySelector('#hint'), button=document.querySelector('#search'), status=document.querySelector('#status'), results=document.querySelector('#results'); let file;
+drop.onclick=()=>input.click(); input.onchange=()=>setFile(input.files[0]); ['dragover','dragenter'].forEach(e=>drop.addEventListener(e,x=>{x.preventDefault();drop.classList.add('drag')})); ['dragleave','drop'].forEach(e=>drop.addEventListener(e,x=>{x.preventDefault();drop.classList.remove('drag')})); drop.addEventListener('drop',e=>setFile(e.dataTransfer.files[0]));
+function setFile(value){if(!value?.type.startsWith('image/'))return; file=value; preview.src=URL.createObjectURL(file); preview.hidden=false; hint.hidden=true; button.disabled=false;}
+button.onclick=async()=>{button.disabled=true;status.textContent='Searching the collection...';results.innerHTML='';const body=new FormData();body.append('image',file);body.append('limit','20');body.append('product_group',document.querySelector('#group').value);try{const r=await fetch('/api/search',{method:'POST',body});const data=await r.json();if(!r.ok)throw Error(data.detail||'Search failed');status.textContent=`${data.count} visually similar pieces`;results.innerHTML=data.results.map(x=>`<article><img loading="lazy" src="${x.image_path}" alt="${x.prod_name||'H&M product'}"><h2>${x.prod_name||'Unnamed product'}</h2><p>${x.product_type_name||''} · ${x.colour_group_name||''}</p><p>Match ${(x.similarity*100).toFixed(1)}%</p></article>`).join('')}catch(e){status.textContent=e.message}finally{button.disabled=false}};
+</script></body></html>
